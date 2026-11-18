@@ -49,10 +49,12 @@ public class DashboardService {
                 .filter(o -> o.getStatus() == Order.OrderStatus.PENDING)
                 .count();
 
-        BigDecimal totalRevenue = allOrders.stream()
-                .filter(o -> o.getStatus() != Order.OrderStatus.CANCELLED)
-                .map(Order::getTotalAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalRevenue = BigDecimal.ZERO;
+        for (Order o : allOrders) {
+            if (o != null && o.getStatus() != Order.OrderStatus.CANCELLED && o.getTotalAmount() != null) {
+                totalRevenue = totalRevenue.add(o.getTotalAmount());
+            }
+        }
 
         return new DashboardStats(totalListings, activeSneakers, soldSneakers, 
                                  totalOrders, pendingOrders, totalRevenue);
