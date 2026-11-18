@@ -13,7 +13,6 @@ public class CorsConfig implements WebMvcConfigurer {
     private String allowedOrigins;
 
     @Override
-    @SuppressWarnings("null")
     public void addCorsMappings(@NonNull CorsRegistry registry) {
         String[] origins = allowedOrigins != null ? allowedOrigins.split(",") : new String[]{"http://localhost:3000", "http://localhost:5173"};
         registry.addMapping("/**")

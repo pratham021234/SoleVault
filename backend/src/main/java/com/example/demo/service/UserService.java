@@ -23,7 +23,6 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    @SuppressWarnings("null")
     public User updateProfile(UserProfileRequest request) {
         User user = getCurrentUser();
 

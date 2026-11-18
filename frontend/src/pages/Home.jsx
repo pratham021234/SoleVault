@@ -12,13 +12,13 @@ const Home = () => {
   const [filteredSneakers, setFilteredSneakers] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
-  const [selectedBrands, setSelectedBrands] = useState([])
+  const [selectedBrand, setSelectedBrand] = useState('ALL')
   const [selectedCondition, setSelectedCondition] = useState('ALL')
   const [showContent, setShowContent] = useState(false)
   const [expandedCard, setExpandedCard] = useState(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
-  const brands = ['NIKE', 'ADIDAS', 'NEW BALANCE', 'PUMA', 'CONVERSE', 'VANS']
+  const brands = ['ALL', 'NIKE', 'ADIDAS', 'NEW BALANCE', 'PUMA', 'CONVERSE', 'VANS']
   const conditions = ['ALL', 'NEW', 'LIKE NEW', 'USED']
 
   useEffect(() => {
@@ -27,7 +27,7 @@ const Home = () => {
 
   useEffect(() => {
     applyFilters()
-  }, [sneakers, selectedBrands, selectedCondition, searchTerm])
+  }, [sneakers, selectedBrand, selectedCondition, searchTerm])
 
   useEffect(() => {
     let imageSlider = null
@@ -72,31 +72,35 @@ const Home = () => {
     let filtered = [...sneakers]
 
     if (searchTerm.trim()) {
+      const term = searchTerm.trim().toLowerCase()
       filtered = filtered.filter(sneaker =>
-        sneaker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sneaker.brand.toLowerCase().includes(searchTerm.toLowerCase())
+        (sneaker.name || '').toLowerCase().includes(term) ||
+        (sneaker.brand || '').toLowerCase().includes(term) ||
+        (sneaker.color || '').toLowerCase().includes(term)
       )
     }
 
-    if (selectedBrands.length > 0) {
+    if (selectedBrand !== 'ALL') {
       filtered = filtered.filter(sneaker => 
-        selectedBrands.some(brand => brand.toLowerCase() === sneaker.brand.toLowerCase())
+        (sneaker.brand || '').trim().toUpperCase() === selectedBrand.trim().toUpperCase()
       )
     }
 
     if (selectedCondition !== 'ALL') {
       filtered = filtered.filter(sneaker => 
-        sneaker.condition.toLowerCase() === selectedCondition.toLowerCase()
+        (sneaker.condition || '').trim().toUpperCase() === selectedCondition.trim().toUpperCase()
       )
     }
 
     setFilteredSneakers(filtered)
   }
 
-  const toggleBrand = (brand) => {
-    setSelectedBrands(prev =>
-      prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]
-    )
+  const handleBrandClick = (brand) => {
+    if (selectedBrand === brand && brand !== 'ALL') {
+      setSelectedBrand('ALL')
+    } else {
+      setSelectedBrand(brand)
+    }
   }
 
   return (
@@ -168,17 +172,25 @@ const Home = () => {
           </div>
           
           <div className="flex flex-wrap gap-3 justify-center mb-8">
-            {brands.map(brand => (
-              <button
-                key={brand}
-                onClick={() => toggleBrand(brand)}
-                className={`px-8 py-4 rounded-full border-2 border-black font-bold uppercase text-sm tracking-wider transition-all hover:scale-105 ${
-                  selectedBrands.includes(brand) ? 'bg-black text-white shadow-lg' : 'bg-white text-black hover:bg-gray-100'
-                }`}
-              >
-                {brand}
-              </button>
-            ))}
+            {brands.map(brand => {
+              const isSelected = selectedBrand === brand
+              const count = brand === 'ALL'
+                ? sneakers.length
+                : sneakers.filter(s => (s.brand || '').trim().toUpperCase() === brand).length
+
+              return (
+                <button
+                  key={brand}
+                  type="button"
+                  onClick={() => handleBrandClick(brand)}
+                  className={`px-6 sm:px-8 py-3 sm:py-4 rounded-full border-2 border-black font-bold uppercase text-xs sm:text-sm tracking-wider transition-all hover:scale-105 ${
+                    isSelected ? 'bg-black text-white shadow-lg' : 'bg-white text-black hover:bg-gray-100'
+                  }`}
+                >
+                  {brand} {count > 0 && `(${count})`}
+                </button>
+              )
+            })}
           </div>
           
           <div className="text-center mb-6">
@@ -187,17 +199,25 @@ const Home = () => {
           </div>
           
           <div className="flex flex-wrap gap-3 justify-center">
-            {conditions.map(condition => (
-              <button
-                key={condition}
-                onClick={() => setSelectedCondition(condition)}
-                className={`px-8 py-4 rounded-full border-2 border-black font-bold uppercase text-sm tracking-wider transition-all hover:scale-105 ${
-                  selectedCondition === condition ? 'bg-black text-white shadow-lg' : 'bg-white text-black hover:bg-gray-100'
-                }`}
-              >
-                {condition}
-              </button>
-            ))}
+            {conditions.map(condition => {
+              const isSelected = selectedCondition === condition
+              const count = condition === 'ALL'
+                ? sneakers.length
+                : sneakers.filter(s => (s.condition || '').trim().toUpperCase() === condition).length
+
+              return (
+                <button
+                  key={condition}
+                  type="button"
+                  onClick={() => setSelectedCondition(condition)}
+                  className={`px-6 sm:px-8 py-3 sm:py-4 rounded-full border-2 border-black font-bold uppercase text-xs sm:text-sm tracking-wider transition-all hover:scale-105 ${
+                    isSelected ? 'bg-black text-white shadow-lg' : 'bg-white text-black hover:bg-gray-100'
+                  }`}
+                >
+                  {condition} {count > 0 && `(${count})`}
+                </button>
+              )
+            })}
           </div>
         </div>
       </div>
@@ -224,13 +244,13 @@ const Home = () => {
             </div>
             <p className="text-display text-4xl font-bold uppercase tracking-wider mb-6">NO SNEAKERS FOUND</p>
             <p className="text-sm uppercase tracking-wider text-gray-600 font-semibold mb-8">TRY ADJUSTING YOUR FILTERS</p>
-            <button onClick={() => { setSelectedBrands([]); setSelectedCondition('ALL'); setSearchTerm('') }} className="btn-primary">
+            <button onClick={() => { setSelectedBrand('ALL'); setSelectedCondition('ALL'); setSearchTerm('') }} className="btn-primary">
               CLEAR ALL FILTERS
             </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8" id="sneaker-grid">
-            {filteredSneakers.map((sneaker, index) => {
+            {filteredSneakers.map((sneaker) => {
               const isOwnListing = user && sneaker.seller?.username === user.username
               const isExpanded = expandedCard === sneaker.id
               const isBlurred = expandedCard && expandedCard !== sneaker.id
@@ -238,8 +258,7 @@ const Home = () => {
               return (
                 <div
                   key={sneaker.id}
-                  className={`relative transition-all duration-700 ${showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'} ${isBlurred ? 'depth-blur' : ''} ${isExpanded ? 'col-span-1 lg:col-span-2 row-span-2' : ''}`}
-                  style={{transitionDelay: `${1000 + index * 100}ms`}}
+                  className={`relative transition-all duration-300 ${showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'} ${isBlurred ? 'depth-blur' : ''} ${isExpanded ? 'col-span-1 lg:col-span-2 row-span-2' : ''}`}
                   onMouseEnter={() => {
                     const cleanup = handleCardHover(sneaker.id)
                     sneaker._cleanup = cleanup

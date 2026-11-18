@@ -25,7 +25,6 @@ public class ReviewService {
     @Autowired
     private UserRepository userRepository;
 
-    @SuppressWarnings("null")
     public Review createReview(ReviewRequest request) {
         if (request.getSneakerId() == null) {
             throw new RuntimeException("Sneaker ID cannot be null");
